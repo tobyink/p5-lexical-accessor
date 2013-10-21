@@ -87,6 +87,7 @@ sub _canonicalize_opts : method
 	$opts->{is} ||= 'bare';
 	
 	Carp::croak("Delegations are not supported yet") if $opts->{handles};
+	Carp::croak("Weakening is not supported yet") if $opts->{weak_ref};
 	
 	for (qw/ clearer predicate /)
 	{
@@ -122,6 +123,11 @@ sub _canonicalize_opts : method
 	if (defined $opts->{default} and ref $opts->{default} ne 'CODE')
 	{
 		Carp::croak("Invalid default; expected a CODE ref");
+	}
+	
+	if (defined $opts->{lazy} and not $opts->{lazy})
+	{
+		Carp::croak("Invalid lazy; private attributes cannot be eager");
 	}
 	
 	if (my $does = $opts->{does})
@@ -482,6 +488,75 @@ Lexical::Accessor - true private attributes for Moose/Moo/Mouse
 
 =head1 DESCRIPTION
 
+Lexical::Accessor generates coderefs which can be used as methods to
+access private attributes for objects.
+
+The private attributes are stored inside-out, and do not add any
+accessors to the class' namespace, so are completely invisible to any
+outside code, including any subclasses. This gives your attribute
+complete privacy: subclasses can define a private (or even public)
+attribute with the same name as your private one and they will not
+interfere with each other.
+
+Private attributes can not be initialized by L<Moose>/L<Moo>/L<Mouse>
+constructors, but you can safey initialize them inside a C<BUILD> sub.
+
+=head2 C<< lexical_has $name?, %options >>
+
+This module exports a function L<lexical_has> which acts much like
+Moose's C<has> function, but sets up a private (lexical) attribute
+instead of a public one.
+
+Because lexical attributes are stored inside-out, the C<$name> is
+completely optional; however a name is recommended because it allows
+better error messages to be generated.
+
+The L<lexical_has> function supports the following options:
+
+=over
+
+=item C<< is >>
+
+Moose/Mouse/Moo-style C<ro>, C<rw>, C<rwp> and C<lazy> values are
+supported. These control what sort of coderef is returned by the
+C<lexical_has> function itself.
+
+   my $reader            = lexical_has "foo" => (is => "ro");
+   my $accessor          = lexical_has "foo" => (is => "rw");
+   my ($reader, $writer) = lexical_has "foo" => (is => "rwp");
+
+If generating more than one method it is probably clearer to pass in
+scalar references to the C<reader>, C<writer>, etc methods instead.
+
+=item C<< reader >>, C<< writer >>, C<< accessor >>, C<< predicate >>,
+C<< clearer >>
+
+These accept scalar references. The relevent coderefs will be plonked
+into them:
+
+   my ($get_foo, $set_foo);
+   lexical_has foo => (
+      reader      => \$get_foo,
+      writer      => \$set_foo,
+   );
+
+=item C<< default >>, C<< builder >>, C<< lazy >>
+
+=item C<< isa >>
+
+=item C<< does >>
+
+=item C<< coerce >>
+
+=item C<< trigger >>
+
+=item C<< auto_deref >>
+
+=item C<< init_arg >>, C<< required >>
+
+=item C<< weak_ref >>, C<< handles >>
+
+=back
 
 =head1 BUGS
 
