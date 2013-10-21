@@ -82,6 +82,8 @@ sub _canonicalize_opts : method
 	
 	$opts->{is} ||= 'bare';
 	
+	Carp::croak("Delegations are not supported yet") if $opts->{handles};
+	
 	for (qw/ clearer predicate /)
 	{
 		!$opts->{$_}
@@ -444,9 +446,17 @@ Lexical::Accessor - true private attributes for Moose/Moo/Mouse
 =head1 SYNOPSIS
 
    my $accessor = lexical_has identifier => (
-      is      => 'rw',
-      isa     => Int,
-      default => sub { 0 },
+      is       => 'rw',
+      isa      => Int,
+      default  => sub { 0 },
+   );
+   
+   # or...
+   lexical_has identifier => (
+      is       => 'rw',
+      isa      => Int,
+      default  => sub { 0 },
+      accessor => \$accessor,
    );
    
    # later...
