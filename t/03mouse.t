@@ -48,7 +48,7 @@ my ($ggg, $get_ggg, $set_ggg, $has_ggg, $clear_ggg);
 		isa        => Str->plus_coercions(ArrayRef, q[join('', @$_)]),
 		coerce     => 1,
 		trigger    => sub { ++$trigger },
-	);	
+	);
 }
 
 my $g1 = Grouse->new;

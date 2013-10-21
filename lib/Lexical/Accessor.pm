@@ -148,8 +148,7 @@ sub _canonicalize_opts : method
 	{
 		$opts->{isa} ||= sub {
 			blessed($_[0]) && $_[0]->DOES($does)
-				or croak("$_[0] doesn't do the $does role");
-		};
+	};
 	}
 	
 	if (defined $opts->{isa} and not ref $opts->{isa})
@@ -165,6 +164,8 @@ sub _canonicalize_opts : method
 	
 	if (ref $opts->{builder} eq 'CODE')
 	{
+		HAS_SUB_NAME or do { require Sub::Name };
+		
 		my $code = $opts->{builder};
 		defined($name) && defined($opts->{package})
 			or croak("Invalid builder; expected method name as string");
@@ -174,7 +175,7 @@ sub _canonicalize_opts : method
 			"_build_$name",
 			{},
 			$opts->{_export},
-			HAS_SUB_NAME ? Sub::Name::subname($qname, $code) : $code,
+			Sub::Name::subname($qname, $code),
 		);
 	}
 	elsif ($opts->{builder} eq '1')
@@ -461,7 +462,7 @@ sub _inline_lexical_type_coercion : method
 	
 	if ( blessed($coercion)
 	and $coercion->can('can_be_inlined')
-	and $coercion->can_be_inlined 
+	and $coercion->can_be_inlined
 	and $coercion->can('inline_coercion') )
 	{
 		return $coercion->inline_coercion($var);
@@ -487,7 +488,7 @@ sub _inline_lexical_type_assertion : method
 	
 	if ( blessed($type)
 	and $type->can('can_be_inlined')
-	and $type->can_be_inlined 
+	and $type->can_be_inlined
 	and $type->can('inline_assert') )
 	{
 		return $type->inline_assert($var);
@@ -583,9 +584,13 @@ attribute with the same name as your private one and they will not
 interfere with each other.
 
 Private attributes can not be initialized by L<Moose>/L<Moo>/L<Mouse>
-constructors, but you can safey initialize them inside a C<BUILD> sub.
+constructors, but you can safely initialize them inside a C<BUILD> sub.
 
-=head2 C<< lexical_has $name?, %options >>
+=head2 Functions
+
+=over
+
+=item C<< lexical_has $name?, %options >>
 
 This module exports a function L<lexical_has> which acts much like
 Moose's C<has> function, but sets up a private (lexical) attribute
@@ -616,7 +621,7 @@ relying on the return value of the C<lexical_has> function.
 =item C<< reader >>, C<< writer >>, C<< accessor >>, C<< predicate >>,
 C<< clearer >>
 
-These accept scalar references. The relevent coderefs will be plonked
+These accept scalar references. The relevant coderefs will be plonked
 into them:
 
    my ($get_foo, $set_foo);
@@ -640,7 +645,7 @@ a method in the class' namespace. The builder may be a method name, or
 the special value C<< '1' >> which will be interpreted as meaning the
 attribute name prefixed by "_build_". If a coderef is provided, this is
 automatically installed into the class' namespace with the "_build_"
-prefix.
+prefix. (This last feature requires L<Sub::Name>.)
 
 =item C<< isa >>
 
@@ -718,6 +723,28 @@ error.
 =item C<< documentation >>, C<< definition_context >>
 
 Don't do anything, but are allowed; effectively inline comments.
+
+=back
+
+=item C<< HAS_SUB_NAME >>
+
+Indicates the availability of L<Sub::Name> which Lexical::Accessor will
+use if available to name coderefs for the benefit of stack traces.
+
+It's also used to name any C<builder> subs which are automatically
+installed into your class' namespace.
+
+This function is not exported.
+
+=back
+
+=head2 Class Methods
+
+=over
+
+=item C<< lexical_has >>
+
+This function may also be called as a class method.
 
 =back
 
