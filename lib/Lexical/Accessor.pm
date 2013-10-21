@@ -2,12 +2,12 @@ use 5.008003;
 use strict;
 use warnings;
 
-use Carp ();
 use Eval::TypeTiny ();
 use Exporter::Tiny ();
 
 package Lexical::Accessor;
 
+use Carp qw( carp croak );
 use Hash::Util::FieldHash::Compat qw( fieldhash );
 use Scalar::Util qw( blessed reftype );
 
@@ -86,14 +86,14 @@ sub _canonicalize_opts : method
 	
 	$opts->{is} ||= 'bare';
 	
-	Carp::croak("Delegations are not supported yet") if $opts->{handles};
-	Carp::croak("Weakening is not supported yet") if $opts->{weak_ref};
+	croak("Delegations are not supported yet") if $opts->{handles};
+	croak("Weakening is not supported yet") if $opts->{weak_ref};
 	
 	for (qw/ clearer predicate /)
 	{
 		!$opts->{$_}
 			or ref($opts->{$_}) eq 'SCALAR'
-			or Carp::croak("Invalid $_; expected $_ a SCALAR ref");
+			or croak("Invalid $_; expected $_ a SCALAR ref");
 	}
 	
 	for (qw/ reader writer accessor /)
@@ -101,17 +101,17 @@ sub _canonicalize_opts : method
 		!$opts->{$_}
 			or ref($opts->{$_}) eq 'SCALAR'
 			or $opts->{$_} eq '1'
-			or Carp::croak("Invalid $_; expected a SCALAR ref or '1'");
+			or croak("Invalid $_; expected a SCALAR ref or '1'");
 	}
 	
 	if (defined $opts->{init_arg})
 	{
-		Carp::croak("Invalid init_arg; private attributes cannot be initialized in the constructor");
+		croak("Invalid init_arg; private attributes cannot be initialized in the constructor");
 	}
 	
 	if ($opts->{required})
 	{
-		Carp::croak("Invalid required; private attributes cannot be initialized in the constructor");
+		croak("Invalid required; private attributes cannot be initialized in the constructor");
 	}
 	
 	if (defined $opts->{default} and not ref $opts->{default})
@@ -122,19 +122,19 @@ sub _canonicalize_opts : method
 	
 	if (defined $opts->{default} and ref $opts->{default} ne 'CODE')
 	{
-		Carp::croak("Invalid default; expected a CODE ref");
+		croak("Invalid default; expected a CODE ref");
 	}
 	
 	if (defined $opts->{lazy} and not $opts->{lazy})
 	{
-		Carp::croak("Invalid lazy; private attributes cannot be eager");
+		croak("Invalid lazy; private attributes cannot be eager");
 	}
 	
 	if (my $does = $opts->{does})
 	{
 		$opts->{isa} ||= sub {
 			blessed($_[0]) && $_[0]->DOES($does)
-				or Carp::croak("$_[0] doesn't do the $does role");
+				or croak("$_[0] doesn't do the $does role");
 		};
 	}
 	
@@ -142,7 +142,7 @@ sub _canonicalize_opts : method
 	{
 		my $type_name = $opts->{isa};
 		eval { require Type::Utils }
-			or Carp::croak("Missing requirement; type constraint strings require Type::Utils");
+			or croak("Missing requirement; type constraint strings require Type::Utils");
 		
 		$opts->{isa} = $opts->{package}
 			? Type::Utils::dwim_type($type_name, for => $opts->{package})
@@ -153,7 +153,7 @@ sub _canonicalize_opts : method
 	{
 		my $code = $opts->{builder};
 		defined($name) && defined($opts->{package})
-			or Carp::croak("Invalid builder; expected method name as string");
+			or croak("Invalid builder; expected method name as string");
 		
 		my $qname = "$opts->{package}\::_build_$name";
 		$me->_exporter_install_sub(
@@ -379,12 +379,12 @@ sub _inline_lexical_type_coercion : method
 		}
 		else
 		{
-			Carp::croak("Invalid coerce; type constraint cannot be probed for coercion");
+			croak("Invalid coerce; type constraint cannot be probed for coercion");
 		}
 		
 		unless (ref $coercion)
 		{
-			Carp::carp("Invalid coerce; type constraint has no coercion");
+			carp("Invalid coerce; type constraint has no coercion");
 			return $var;
 		}
 	}
