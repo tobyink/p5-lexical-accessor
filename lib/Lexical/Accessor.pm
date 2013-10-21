@@ -11,6 +11,10 @@ package Lexical::Accessor;
 use Hash::Util::FieldHash::Compat qw( fieldhash );
 use Scalar::Util qw( blessed reftype );
 
+BEGIN {
+	*HAS_SUB_NAME = eval { require Sub::Name } ? sub(){1} : sub(){0};
+};
+
 our $AUTHORITY = 'cpan:TOBYINK';
 our $VERSION   = '0.001';
 our @EXPORT    = qw/ lexical_has /;
@@ -150,7 +154,7 @@ sub _canonicalize_opts : method
 			"_build_$name",
 			{},
 			$opts->{_export},
-			eval { require Sub::Name } ? Sub::Name::subname($qname, $code) : $code,
+			HAS_SUB_NAME ? Sub::Name::subname($qname, $code) : $code,
 		);
 	}
 	
@@ -171,11 +175,15 @@ sub _inline_to_coderef : method
 		? sprintf('lexical %s for %s', $method_type, $name)
 		: sprintf('lexical %s', $method_type);
 	
-	Eval::TypeTiny::eval_closure(
+	my $coderef = Eval::TypeTiny::eval_closure(
 		source      => $src,
 		environment => $opts->{inline_environment},
 		description => $desc,
 	);
+	
+	HAS_SUB_NAME && $opts->{package} && defined($name)
+		? Sub::Name::subname("$opts->{package}\::__LEXICAL__[$name]", $coderef)
+		: $coderef
 }
 
 sub _lexical_clearer : method
@@ -349,7 +357,7 @@ sub _inline_lexical_type_coercion : method
 	my $me = shift;
 	my ($var, $name, $uniq, $opts) = @_;
 	
-	my $coercion = $opts->{coerce} or return '';
+	my $coercion = $opts->{coerce} or return $var;
 	
 	unless (ref $coercion)
 	{
@@ -371,7 +379,7 @@ sub _inline_lexical_type_coercion : method
 		unless (ref $coercion)
 		{
 			Carp::carp("Invalid coerce; type constraint has no coercion");
-			return '';
+			return $var;
 		}
 	}
 	
