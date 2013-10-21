@@ -33,7 +33,11 @@ sub lexical_has : method
 	my $export_opts = ref($_[0]) eq 'HASH' ? shift(@_) : {};
 	my ($name, %opts) = (@_%2) ? @_ : (undef, @_);
 	
-	$me->_canonicalize_opts($export_opts, $name, ++$uniq, \%opts);
+	# Massage %opts
+	$opts{_export} = $export_opts;
+	$opts{package} = $export_opts->{into} if defined($export_opts->{into}) && !ref($export_opts->{into});
+	$me->_canonicalize_opts($name, ++$uniq, \%opts);
+	
 	my @return;
 	my $is = $opts{is};
 	
@@ -74,11 +78,7 @@ sub lexical_has : method
 sub _canonicalize_opts : method
 {
 	my $me = shift;
-	my ($export_opts, $name, $uniq, $opts) = @_;
-	
-	my $pkg = defined($export_opts->{into}) && !ref($export_opts->{into})
-		? $export_opts->{into}
-		: undef;
+	my ($name, $uniq, $opts) = @_;
 	
 	$opts->{is} ||= 'bare';
 	
@@ -88,7 +88,7 @@ sub _canonicalize_opts : method
 	{
 		!$opts->{$_}
 			or ref($opts->{$_}) eq 'SCALAR'
-			or Carp::croak("Expected $_ to be a SCALAR ref");
+			or Carp::croak("Invalid $_; expected $_ a SCALAR ref");
 	}
 	
 	for (qw/ reader writer accessor /)
@@ -96,7 +96,17 @@ sub _canonicalize_opts : method
 		!$opts->{$_}
 			or ref($opts->{$_}) eq 'SCALAR'
 			or $opts->{$_} eq '1'
-			or Carp::croak("Expected reader to be a SCALAR ref or '1'");
+			or Carp::croak("Invalid $_; expected a SCALAR ref or '1'");
+	}
+	
+	if (defined $opts->{init_arg})
+	{
+		Carp::croak("Invalid init_arg; private attributes cannot be initialized in the constructor");
+	}
+	
+	if ($opts->{required})
+	{
+		Carp::croak("Invalid required; private attributes cannot be initialized in the constructor");
 	}
 	
 	if (defined $opts->{default} and not ref $opts->{default})
@@ -107,7 +117,7 @@ sub _canonicalize_opts : method
 	
 	if (defined $opts->{default} and ref $opts->{default} ne 'CODE')
 	{
-		Carp::croak("Expected default to be a coderef");
+		Carp::croak("Invalid default; expected a CODE ref");
 	}
 	
 	if (my $does = $opts->{does})
@@ -122,26 +132,24 @@ sub _canonicalize_opts : method
 	{
 		my $type_name = $opts->{isa};
 		eval { require Type::Utils }
-			or Carp::croak("Type constraint strings require Type::Utils to be installed");
+			or Carp::croak("Missing requirement; type constraint strings require Type::Utils");
 		
-		$opts->{isa} = $pkg
-			? Type::Utils::dwim_type($type_name, for => $pkg)
+		$opts->{isa} = $opts->{package}
+			? Type::Utils::dwim_type($type_name, for => $opts->{package})
 			: Type::Utils::dwim_type($type_name);
 	}
 	
 	if (ref $opts->{builder})
 	{
 		my $code = $opts->{builder};
-		defined($name)
-			or Carp::croak("Coderef builders cannot be used for anonymous lexical attributes");
-		defined($pkg)
-			or Carp::croak("Coderef builders cannot be used for packageless lexical attributes");
+		defined($name) && defined($opts->{package})
+			or Carp::croak("Invalid builder; expected method name as string");
 		
-		my $qname = "$pkg\::_build_$name";
+		my $qname = "$opts->{package}\::_build_$name";
 		$me->_exporter_install_sub(
 			"_build_$name",
 			{},
-			$export_opts,
+			$opts->{_export},
 			eval { require Sub::Name } ? Sub::Name::subname($qname, $code) : $code,
 		);
 	}
@@ -357,12 +365,12 @@ sub _inline_lexical_type_coercion : method
 		}
 		else
 		{
-			Carp::croak("Type constraint cannot be probed for a coercion");
+			Carp::croak("Invalid coerce; type constraint cannot be probed for coercion");
 		}
 		
 		unless (ref $coercion)
 		{
-			Carp::carp("Type constraint has no coercion");
+			Carp::carp("Invalid coerce; type constraint has no coercion");
 			return '';
 		}
 	}
@@ -465,7 +473,6 @@ Lexical::Accessor - true private attributes for Moose/Moo/Mouse
    say $self->$accessor;     # says 1
 
 =head1 DESCRIPTION
-
 
 
 =head1 BUGS
