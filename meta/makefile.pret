@@ -1,0 +1,22 @@
+# This file provides instructions for packaging.
+
+@prefix : <http://ontologi.es/doap-deps#>.
+
+`Lexical-Accessor`
+	:develop-recommendation [ :on "Dist::Inkt 0.001"^^:CpanId ];
+	:runtime-requirement    [ :on "perl 5.008003"^^:CpanId ];
+	:runtime-requirement    [ :on "Eval::TypeTiny"^^:CpanId ];
+	:runtime-requirement    [ :on "Exporter::Tiny"^^:CpanId ];
+	:runtime-requirement    [ :on "Hash::Util::FieldHash::Compat"^^:CpanId ];
+	:runtime-recommendation [ :on "Type::Utils 0.026"^^:CpanId ];
+	:runtime-recommendation [ :on "Sub::Name"^^:CpanId ];
+	:test-requirement       [ :on "Test::More 0.96"^^:CpanId ];
+	:test-requirement       [ :on "Types::Standard 0.004"^^:CpanId ];
+	:test-requirement       [ :on "Test::Fatal"^^:CpanId ];
+	:test-requirement       [ :on "Test::Requires"^^:CpanId ];
+	:test-recommendation    [ :on "Moo 1.000000"^^:CpanId ];
+	:test-recommendation    [ :on "Mouse 1.00"^^:CpanId ];
+	:test-recommendation    [ :on "Moose 2.0000"^^:CpanId ];
+	:test-recommendation    [ :on "Class::Tiny 0.006"^^:CpanId ];
+	.
+
