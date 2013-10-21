@@ -56,6 +56,18 @@ sub lexical_has : method
 		${ $opts{predicate} } = $me->_lexical_predicate($name, $uniq, \%opts);
 	}
 	
+	if (ref $opts{handles})
+	{
+		my @pairs = @{$opts{handles}};
+		while (@pairs)
+		{
+			my ($target, $method) = splice(@pairs, 0, 2);
+			croak("Invalid handles; even indexed items should be SCALAR refs, not $target")
+				unless ref($target) eq 'SCALAR';
+			${ $target } = $me->_lexical_handles($method, $name, $uniq, \%opts);
+		}
+	}
+	
 	if ($opts{reader} or $is eq 'ro' or $is eq 'rwp')
 	{
 		my $reader = $me->_lexical_reader($name, $uniq, \%opts);
@@ -87,8 +99,9 @@ sub _canonicalize_opts : method
 	
 	$opts->{is} ||= 'bare';
 	
-	croak("Delegations are not supported yet") if $opts->{handles};
-	croak("Traits are not supported yet") if $opts->{traits};
+	croak("Initializers are not supported") if $opts->{initializer};
+	croak("Traits are not supported") if $opts->{traits};
+	croak("The lazy_build option is not supported") if $opts->{lazy_build};
 	
 	for (qw/ clearer predicate /)
 	{
@@ -247,6 +260,52 @@ sub _inline_lexical_predicate : method
 	);
 }
 
+sub _lexical_handles : method
+{
+	my $me = shift;
+	my ($method, $name, $uniq, $opts) = @_;
+	
+	$me->_inline_to_coderef(
+		'delegated method' => $me->_inline_lexical_handles(@_),
+		@_[1 .. 3],
+	);
+}
+
+my $handler_uniq = 0;
+sub _inline_lexical_handles : method
+{
+	my $me = shift;
+	my ($method, $name, $uniq, $opts) = @_;
+	
+	my $get = $me->_inline_lexical_access($name, $uniq, $opts);
+	
+	my $varname = sprintf('$handler_%d', ++$handler_uniq);
+	$opts->{inline_environment}{$varname} = \($method);
+	
+	my $death = 'Scalar::Util::blessed($h) or Carp::croak("Expected blessed object to delegate to; got $h")';
+	
+	if (ref $method eq 'ARRAY')
+	{
+		return sprintf(
+			q[ %s; my $h = %s; %s; shift; my ($m, @a) = @%s; $h->$m(@a, @_) ],
+			$me->_inline_lexical_default($name, $uniq, $opts),
+			$get,
+			$death,
+			$varname,
+		);
+	}
+	else
+	{
+		return sprintf(
+			q[ %s; my $h = %s; %s; shift; $h->%s(@_) ],
+			$me->_inline_lexical_default($name, $uniq, $opts),
+			$get,
+			$death,
+			$varname,
+		);
+	}
+}
+
 sub _inline_lexical_get : method
 {
 	my $me = shift;
@@ -279,16 +338,18 @@ sub _inline_lexical_default : method
 			$opts->{inline_environment}{'$default'} = \($opts->{default});
 			
 			return sprintf(
-				q[ %s = $default->($_[0]); ],
+				q[ %s = $default->($_[0]) unless exists(%s); ],
+				$get,
 				$get,
 			);
 		}
 		elsif (defined $opts->{builder})
 		{
 			return sprintf(
-				q[ %s = $_[0]->%s; ],
+				q[ %s = $_[0]->%s unless exists(%s); ],
 				$get,
 				$opts->{builder},
+				$get,
 			);
 		}
 	}
@@ -627,14 +688,36 @@ Must be false if provided at all.
 
 Boolean. Makes the setter weaken any references it is called with.
 
-=item C<< handles >>, C<< traits >>
+=item C<< handles >>
+
+Delegates methods. Has slightly different syntax to Moose's option of
+the same name - is required to be an arrayref of pairs such that each
+pair is a scalar ref followed by a method name, a coderef, or an
+arrayref (where the first element is a method name or coderef and
+subsequent elements are curried arguments).
+ 
+   my ($get, $post);
+  
+   lexical_has ua => (
+      isa      => 'HTTP::Tiny',
+      default  => sub { 'HTTP::Tiny'->new },
+      handles  => [
+         \$get   => 'get',
+         \$post  => 'post',
+      ],
+   );
+   
+   # later...
+   my $response = $self->$get('http://example.net/');
+
+=item C<< initializer >>, C<< traits >>, C<< lazy_build >>
 
 Not currently implemented. Providing any of these options throws an
 error.
 
-=item C<< documentation >>
+=item C<< documentation >>, C<< definition_context >>
 
-This doesn't do anything; it's effectively an inline comment.
+Don't do anything, but are allowed; effectively inline comments.
 
 =back
 
@@ -644,6 +727,13 @@ Please report any bugs to
 L<http://rt.cpan.org/Dist/Display.html?Queue=Lexical-Accessor>.
 
 =head1 SEE ALSO
+
+L<MooX::PrivateAttributes>,
+L<MooX::ProtectedAttributes>,
+L<MooseX::Privacy>,
+L<Sub::Private>,
+L<Method::Lexical>,
+etc...
 
 =head1 AUTHOR
 
