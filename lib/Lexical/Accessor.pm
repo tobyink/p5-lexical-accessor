@@ -391,11 +391,35 @@ sub _lexical_writer : method
 sub _inline_lexical_writer : method
 {
 	my $me = shift;
-	my $get = $me->_inline_lexical_access(@_);
+	my ($name, $uniq, $opts) = @_;
+	
+	my $get    = $me->_inline_lexical_access(@_);
+	my $coerce = $me->_inline_lexical_type_coercion('$_[1]', @_);
+	
+	if ($coerce eq '$_[1]')  # i.e. no coercion
+	{
+		if (!$opts->{trigger} and !$opts->{weak_ref})
+		{
+			return sprintf(
+				'%s = %s',
+				$get,
+				$me->_inline_lexical_type_assertion('$_[1]', @_),
+			);
+		}
+		
+		return sprintf(
+			'%s; %s; %s = $_[1]; %s; %s',
+			$me->_inline_lexical_type_assertion('$_[1]', @_),
+			$me->_inline_lexical_trigger('$_[1]', $get, @_),
+			$get,
+			$me->_inline_lexical_weaken(@_),
+			$me->_inline_lexical_get(@_),
+		);
+	}
 	
 	sprintf(
 		'my $val = %s; %s; %s; %s = $val; %s; $val',
-		$me->_inline_lexical_type_coercion('$_[1]', @_),
+		$coerce,
 		$me->_inline_lexical_type_assertion('$val', @_),
 		$me->_inline_lexical_trigger('$val', $get, @_),
 		$get,
@@ -416,11 +440,36 @@ sub _lexical_accessor : method
 sub _inline_lexical_accessor : method
 {
 	my $me = shift;
-	my $get = $me->_inline_lexical_access(@_);
+	my ($name, $uniq, $opts) = @_;
+	
+	my $get    = $me->_inline_lexical_access(@_);
+	my $coerce = $me->_inline_lexical_type_coercion('$_[1]', @_);
+	
+	if ($coerce eq '$_[1]')  # i.e. no coercion
+	{
+		if (!$opts->{trigger} and !$opts->{weak_ref})
+		{
+			return sprintf(
+				'(@_ > 1) ? (%s = %s) : %s',
+				$get,
+				$me->_inline_lexical_type_assertion('$_[1]', @_),
+				$get,
+			);
+		}
+		
+		return sprintf(
+			'if (@_ > 1) { %s; %s; %s = $_[1]; %s }; %s',
+			$me->_inline_lexical_type_assertion('$_[1]', @_),
+			$me->_inline_lexical_trigger('$_[1]', $get, @_),
+			$get,
+			$me->_inline_lexical_weaken(@_),
+			$me->_inline_lexical_get(@_),
+		);
+	}
 	
 	sprintf(
 		'if (@_ > 1) { my $val = %s; %s; %s; %s = $val; %s }; %s',
-		$me->_inline_lexical_type_coercion('$_[1]', @_),
+		$coerce,
 		$me->_inline_lexical_type_assertion('$val', @_),
 		$me->_inline_lexical_trigger('$val', $get, @_),
 		$get,
@@ -468,14 +517,15 @@ sub _inline_lexical_type_coercion : method
 		return $coercion->inline_coercion($var);
 	}
 	
+	# Otherwise need to close over $coerce
+	$opts->{inline_environment}{'$coercion'} = \$coercion;
+	
 	if ( blessed($coercion)
 	and $coercion->can('coerce') )
 	{
-		$opts->{inline_environment}{'$coercion'} = \$coercion;
 		return sprintf('$coercion->coerce(%s)', $var);
 	}
 	
-	$opts->{inline_environment}{'$coercion'} = \$coercion;
 	return sprintf('$coercion->(%s)', $var);
 }
 
@@ -487,30 +537,41 @@ sub _inline_lexical_type_assertion : method
 	my $type = $opts->{isa} or return '';
 	
 	if ( blessed($type)
-	and $type->can('can_be_inlined')
-	and $type->can_be_inlined
-	and $type->can('inline_assert') )
+	and $type->isa('Type::Tiny')
+	and $type->can_be_inlined )
 	{
-		return $type->inline_assert($var);
+		my $ass = $type->inline_assert($var);
+		if ($ass =~ /\Ado \{(.+)\};\z/sm)
+		{
+			return "do { $1 }";  # i.e. drop trailing ";"
+		}
+		# otherwise protect expression from trailing ";"
+		return "do { $ass }"
 	}
 	
+	# Otherwise need to close over $type
+	$opts->{inline_environment}{'$type'} = \$type;
+	
+	# non-Type::Tiny but still supports inlining
 	if ( blessed($type)
-	and $type->can('assert_valid') )
+	and $type->can('can_be_inlined')
+	and $type->can_be_inlined )
 	{
-		$opts->{inline_environment}{'$type'} = \$type;
-		return sprintf('$type->assert_valid(%s)', $var);
+		my $inliner = $type->can('inline_check') || $type->can('_inline_check');
+		if ($inliner)
+		{
+			return sprintf('do { %s } ? %s : Carp::croak($type->get_message(%s))', $type->$inliner($var), $var, $var);
+		}
 	}
 	
 	if ( blessed($type)
 	and $type->can('check')
 	and $type->can('get_message') )
 	{
-		$opts->{inline_environment}{'$type'} = \$type;
-		return sprintf('$type->check(%s) or Carp::croak($type->get_message(%s))', $var, $var);
+		return sprintf('$type->check(%s) ? %s : Carp::croak($type->get_message(%s))', $var, $var, $var);
 	}
 	
-	$opts->{inline_environment}{'$type'} = \$type;
-	return sprintf('$type->(%s)', $var);
+	return sprintf('$type->(%s) ? %s : Carp::croak("Value %s failed type constraint check")', $var, $var, $var);
 }
 
 sub _inline_lexical_weaken : method
