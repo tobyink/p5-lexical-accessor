@@ -666,7 +666,7 @@ C<does> option.
 
 =item C<< coerce >>
 
-A coderef of L<Type::Coercion> object is accepted.
+A coderef or L<Type::Coercion> object is accepted.
 
 If the special value C<< '1' >> is provided, the type constraint object
 is consulted to find the coercion. (This doesn't work for coderef type
