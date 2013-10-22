@@ -82,7 +82,7 @@ sub lexical_has : method
 		push @return, $writer if $is eq 'rwp';
 	}
 	
-	if ($opts{accessor} or $is eq 'rw' or not defined $is)
+	if ($opts{accessor} or $is eq 'rw')
 	{
 		my $accessor = $me->_lexical_accessor($name, $uniq, \%opts);
 		${ $opts{accessor} } = $accessor if ref $opts{accessor};
@@ -97,7 +97,7 @@ sub _canonicalize_opts : method
 	my $me = shift;
 	my ($name, $uniq, $opts) = @_;
 	
-	$opts->{is} ||= 'bare';
+	$opts->{is} ||= 'rw';
 	
 	croak("Initializers are not supported") if $opts->{initializer};
 	croak("Traits are not supported") if $opts->{traits};
@@ -534,7 +534,7 @@ sub _inline_lexical_type_assertion : method
 	my $me = shift;
 	my ($var, $name, $uniq, $opts) = @_;
 	
-	my $type = $opts->{isa} or return '';
+	my $type = $opts->{isa} or return $var;
 	
 	if ( blessed($type)
 	and $type->isa('Type::Tiny')
@@ -606,6 +606,8 @@ __END__
 =pod
 
 =encoding utf-8
+
+=for stopwords benchmarking
 
 =head1 NAME
 
