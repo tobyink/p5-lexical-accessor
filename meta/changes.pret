@@ -4,3 +4,11 @@
 	issued  2013-10-21;
 	label   "Initial release".
 
+`Lexical-Accessor 0.002 cpan:TOBYINK`
+	issued  2013-10-22;
+	changeset [
+		item "Fix minor (yet confusing) typo."^^Documentation;
+		item "Comparisons with MooseX::Privacy, MooX::PrivateAttributes, etc."^^Documentation;
+		item "Bundle a benchmarking script as an example."^^Documentation;
+		item "Use Hash::FieldHash (it's significantly faster) instead of Hash::Util::FieldHash::Compat."^^Change;
+	].

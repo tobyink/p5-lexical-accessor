@@ -17,7 +17,7 @@ BEGIN {
 };
 
 our $AUTHORITY = 'cpan:TOBYINK';
-our $VERSION   = '0.001';
+our $VERSION   = '0.002';
 our @EXPORT    = qw/ lexical_has /;
 our @ISA       = qw/ Exporter::Tiny /;
 
