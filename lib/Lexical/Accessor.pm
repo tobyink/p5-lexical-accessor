@@ -9,7 +9,7 @@ use Exporter::Tiny ();
 package Lexical::Accessor;
 
 use Carp qw( carp croak );
-use Hash::Util::FieldHash::Compat qw( fieldhash );
+use Hash::FieldHash qw( fieldhash );
 use Scalar::Util qw( blessed reftype );
 
 BEGIN {
