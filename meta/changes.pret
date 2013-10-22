@@ -12,4 +12,5 @@
 		item "Bundle a benchmarking script as an example."^^Documentation;
 		item "Use Hash::FieldHash (it's significantly faster) instead of Hash::Util::FieldHash::Compat."^^Change;
 		item "Default to is=>'rw' instead of is=>'bare'."^^Change;
+		item "Fix is=>'lazy'."^^Bugfix;
 	].
