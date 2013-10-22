@@ -99,6 +99,12 @@ sub _canonicalize_opts : method
 	
 	$opts->{is} ||= 'rw';
 	
+	if ($opts->{is} eq 'lazy')
+	{
+		$opts->{is}      = 'ro';
+		$opts->{builder} = 1 unless $opts->{builder} || $opts->{default};
+	}
+	
 	croak("Initializers are not supported") if $opts->{initializer};
 	croak("Traits are not supported") if $opts->{traits};
 	croak("The lazy_build option is not supported") if $opts->{lazy_build};
