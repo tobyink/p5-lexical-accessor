@@ -1,7 +1,9 @@
 language: perl
 script: HARNESS_IS_VERBOSE=1 prove -Ilib t
 install:
-  - cpanm App::cpantimes
+  - mkdir $HOME/.cpantesters
+  - cpanm App::cpantimes Test::Reporter Test::Reporter::Transport::Metabase LWP::Protocol::https
+  - metabase-profile --name "Toby Inkster (TOBYINK) via Travis-CI" --email "tobyink@cpan.org" -o"$HOME/.cpantesters/metabase_id.json" --secret travis-ci
   - cpant Test::More Test::Requires Test::Fatal Class::Tiny Exporter::Tiny Types::Standard Hash::FieldHash
 perl:
   - "5.18"
