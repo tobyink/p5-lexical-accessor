@@ -1,0 +1,11 @@
+language: perl
+script: HARNESS_IS_VERBOSE=1 prove -Ilib t
+install:
+  - cpanm Test::More Test::Requires Test::Fatal Moo Class::Tiny Exporter::Tiny Types::Standard
+perl:
+  - "5.18"
+  - "5.16"
+  - "5.14"
+  - "5.12"
+  - "5.10"
+  - "5.8"
