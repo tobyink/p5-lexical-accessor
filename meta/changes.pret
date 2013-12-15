@@ -14,3 +14,9 @@
 		item "Default to is=>'rw' instead of is=>'bare'."^^Change;
 		item "Fix is=>'lazy'."^^Bugfix;
 	].
+
+`Lexical-Accessor 0.003 cpan:TOBYINK`
+	issued  2013-12-15;
+	changeset [
+		item "If Sub::Name is available, use it to name the exported `lexical_has` keyword."^^Change;
+	].

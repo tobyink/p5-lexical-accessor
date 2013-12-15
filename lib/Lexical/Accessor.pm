@@ -17,7 +17,7 @@ BEGIN {
 };
 
 our $AUTHORITY = 'cpan:TOBYINK';
-our $VERSION   = '0.002';
+our $VERSION   = '0.003';
 our @EXPORT    = qw/ lexical_has /;
 our @ISA       = qw/ Exporter::Tiny /;
 
@@ -28,7 +28,9 @@ sub _generate_lexical_has : method
 	my $me = shift;
 	my (undef, undef, $export_opts) = @_;
 	
-	return sub { $me->lexical_has($export_opts, @_) };
+	my $code = sub { $me->lexical_has($export_opts, @_) };
+	$code = Sub::Name::subname("$me\::lexical_has", $code) if HAS_SUB_NAME;
+	return $code;
 }
 
 my $uniq = 0;
