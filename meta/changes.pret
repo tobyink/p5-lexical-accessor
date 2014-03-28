@@ -26,3 +26,9 @@
 	changeset [
 		item "Make Lexical::Accessor more subclassable."^^Change;
 	].
+
+`Lexical-Accessor 0.005 cpan:TOBYINK`
+	issued  2014-03-28;
+	changeset [
+		item "Make Lexical::Accessor more even subclassable."^^Change;
+	].
