@@ -239,6 +239,7 @@ sub _inline_to_coderef : method
 	my $desc = defined($name)
 		? sprintf('lexical %s for %s', $method_type, $name)
 		: sprintf('lexical %s', $method_type);
+	# warn "#### $desc\n$src\n";
 	
 	my $coderef = Eval::TypeTiny::eval_closure(
 		source      => $src,
@@ -277,6 +278,17 @@ sub _inline_lexical_access : method
 	sprintf(
 		q[ $Lexical::Accessor::FIELDS{$_[0]}{%d} ],
 		$uniq,
+	);
+}
+
+sub _inline_lexical_access_w : method
+{
+	my $me = shift;
+	my ($name, $uniq, $opts, $expr) = @_;
+	sprintf(
+		q[ %s = %s ],
+		$me->_inline_lexical_access($name, $uniq, $opts),
+		$expr,
 	);
 }
 
@@ -377,18 +389,17 @@ sub _inline_lexical_default : method
 			$opts->{inline_environment}{'$default'} = \($opts->{default});
 			
 			return sprintf(
-				q[ %s = $default->($_[0]) unless exists(%s); ],
-				$get,
-				$get,
+				q[ %s unless %s; ],
+				$me->_inline_lexical_access_w($name, $uniq, $opts, q[$default->($_[0])]),
+				$me->_inline_lexical_predicate($name, $uniq, $opts),
 			);
 		}
 		elsif (defined $opts->{builder})
 		{
 			return sprintf(
-				q[ %s = $_[0]->%s unless exists(%s); ],
-				$get,
-				$opts->{builder},
-				$get,
+				q[ %s unless %s; ],
+				$me->_inline_lexical_access_w($name, $uniq, $opts, q($_[0]->).$opts->{builder}),
+				$me->_inline_lexical_predicate($name, $uniq, $opts),
 			);
 		}
 	}
@@ -438,29 +449,34 @@ sub _inline_lexical_writer : method
 	{
 		if (!$opts->{trigger} and !$opts->{weak_ref})
 		{
-			return sprintf(
-				'%s = %s',
-				$get,
+			return $me->_inline_lexical_access_w(
+				$name, $uniq, $opts,
 				$me->_inline_lexical_type_assertion('$_[1]', @_),
 			);
 		}
 		
 		return sprintf(
-			'%s; %s; %s = $_[1]; %s; %s',
+			'%s; %s; %s; %s; %s',
 			$me->_inline_lexical_type_assertion('$_[1]', @_),
 			$me->_inline_lexical_trigger('$_[1]', $get, @_),
-			$get,
+			$me->_inline_lexical_access_w(
+				$name, $uniq, $opts,
+				'$_[1]',
+			),
 			$me->_inline_lexical_weaken(@_),
 			$me->_inline_lexical_get(@_),
 		);
 	}
 	
 	sprintf(
-		'my $val = %s; %s; %s; %s = $val; %s; $val',
+		'my $val = %s; %s; %s; %s; %s; $val',
 		$coerce,
 		$me->_inline_lexical_type_assertion('$val', @_),
 		$me->_inline_lexical_trigger('$val', $get, @_),
-		$get,
+		$me->_inline_lexical_access_w(
+			$name, $uniq, $opts,
+			'$val',
+		),
 		$me->_inline_lexical_weaken(@_),
 	);
 }
@@ -488,29 +504,37 @@ sub _inline_lexical_accessor : method
 		if (!$opts->{trigger} and !$opts->{weak_ref})
 		{
 			return sprintf(
-				'(@_ > 1) ? (%s = %s) : %s',
-				$get,
-				$me->_inline_lexical_type_assertion('$_[1]', @_),
+				'(@_ > 1) ? (%s) : %s',
+				$me->_inline_lexical_access_w(
+					$name, $uniq, $opts,
+					$me->_inline_lexical_type_assertion('$_[1]', @_),
+				),
 				$get,
 			);
 		}
 		
 		return sprintf(
-			'if (@_ > 1) { %s; %s; %s = $_[1]; %s }; %s',
+			'if (@_ > 1) { %s; %s; %s; %s }; %s',
 			$me->_inline_lexical_type_assertion('$_[1]', @_),
 			$me->_inline_lexical_trigger('$_[1]', $get, @_),
-			$get,
+			$me->_inline_lexical_access_w(
+				$name, $uniq, $opts,
+				'$_[1]',
+			),
 			$me->_inline_lexical_weaken(@_),
 			$me->_inline_lexical_get(@_),
 		);
 	}
 	
 	sprintf(
-		'if (@_ > 1) { my $val = %s; %s; %s; %s = $val; %s }; %s',
+		'if (@_ > 1) { my $val = %s; %s; %s; %s; %s }; %s',
 		$coerce,
 		$me->_inline_lexical_type_assertion('$val', @_),
 		$me->_inline_lexical_trigger('$val', $get, @_),
-		$get,
+		$me->_inline_lexical_access_w(
+			$name, $uniq, $opts,
+			'$val',
+		),
 		$me->_inline_lexical_weaken(@_),
 		$me->_inline_lexical_get(@_),
 	);
