@@ -48,50 +48,95 @@ sub lexical_has : method
 	my @return;
 	my $is = $opts{is};
 	
-	if (ref $opts{clearer})
+	if (exists $opts{clearer})
 	{
-		${ $opts{clearer} } = $me->_lexical_clearer($name, $uniq, \%opts);
+		$me->_install_coderef(
+			$opts{clearer},
+			$me->_lexical_clearer($name, $uniq, \%opts),
+			$name, $uniq, \%opts,
+		);
 	}
 	
-	if (ref $opts{predicate})
+	if (exists $opts{predicate})
 	{
-		${ $opts{predicate} } = $me->_lexical_predicate($name, $uniq, \%opts);
+		$me->_install_coderef(
+			$opts{predicate},
+			$me->_lexical_predicate($name, $uniq, \%opts),
+			$name, $uniq, \%opts,
+		);
 	}
 	
-	if (ref $opts{handles})
+	if (exists $opts{handles})
 	{
-		my @pairs = @{$opts{handles}};
+		my @pairs = $me->_expand_handles($opts{handles}, $name, $uniq, \%opts);
 		while (@pairs)
 		{
 			my ($target, $method) = splice(@pairs, 0, 2);
-			croak("Invalid handles; even indexed items should be SCALAR refs, not $target")
-				unless ref($target) eq 'SCALAR';
-			${ $target } = $me->_lexical_handles($method, $name, $uniq, \%opts);
+			$me->_install_coderef(
+				$target,
+				$me->_lexical_handles($method, $name, $uniq, \%opts),
+				$name, $uniq, \%opts,
+			);
 		}
 	}
 	
-	if ($opts{reader} or $is eq 'ro' or $is eq 'rwp')
+	if (exists $opts{reader} or $is eq 'ro' or $is eq 'rwp')
 	{
 		my $reader = $me->_lexical_reader($name, $uniq, \%opts);
-		${ $opts{reader} } = $reader if ref $opts{reader};
+		$me->_install_coderef($opts{reader}, $reader, $name, $uniq, \%opts)
+			if exists $opts{reader};
 		push @return, $reader if ($is eq 'ro' or $is eq 'rwp');
 	}
 	
-	if ($opts{writer} or $is eq 'rwp')
+	if (exists $opts{writer} or $is eq 'rwp')
 	{
 		my $writer = $me->_lexical_writer($name, $uniq, \%opts);
-		${ $opts{writer} } = $writer if ref $opts{writer};
+		$me->_install_coderef($opts{writer}, $writer, $name, $uniq, \%opts)
+			if exists $opts{writer};
 		push @return, $writer if $is eq 'rwp';
 	}
 	
-	if ($opts{accessor} or $is eq 'rw')
+	if (exists $opts{accessor} or $is eq 'rw')
 	{
 		my $accessor = $me->_lexical_accessor($name, $uniq, \%opts);
-		${ $opts{accessor} } = $accessor if ref $opts{accessor};
+		$me->_install_coderef($opts{accessor}, $accessor, $name, $uniq, \%opts)
+			if exists $opts{accessor};
 		push @return, $accessor;
 	}
 	
 	wantarray ? @return : $return[0];
+}
+
+sub _install_coderef
+{
+	shift;
+	my ($target, $coderef) = @_;
+	
+	if (ref($target) eq q(SCALAR) and not defined $$target)
+	{
+		$$target = $coderef;
+		return;
+	}
+	
+	if (!ref($target) and $target eq 1)
+	{
+		return;
+	}
+	
+	croak "Expected installation target to be a reference to an undefined scalar; got $target";
+}
+
+sub _expand_handles
+{
+	shift;
+	my ($handles, $name, $uniq, $opts) = @_;
+	
+	if (ref($handles) eq q(ARRAY))
+	{
+		return @$handles;
+	}
+	
+	croak "Expected delegations to be a reference to an array; got $handles";
 }
 
 sub _canonicalize_opts : method
@@ -110,21 +155,6 @@ sub _canonicalize_opts : method
 	croak("Initializers are not supported") if $opts->{initializer};
 	croak("Traits are not supported") if $opts->{traits};
 	croak("The lazy_build option is not supported") if $opts->{lazy_build};
-	
-	for (qw/ clearer predicate /)
-	{
-		!$opts->{$_}
-			or ref($opts->{$_}) eq 'SCALAR'
-			or croak("Invalid $_; expected $_ a SCALAR ref");
-	}
-	
-	for (qw/ reader writer accessor /)
-	{
-		!$opts->{$_}
-			or ref($opts->{$_}) eq 'SCALAR'
-			or $opts->{$_} eq '1'
-			or croak("Invalid $_; expected a SCALAR ref or '1'");
-	}
 	
 	if (defined $opts->{init_arg})
 	{
@@ -156,7 +186,7 @@ sub _canonicalize_opts : method
 	{
 		$opts->{isa} ||= sub {
 			blessed($_[0]) && $_[0]->DOES($does)
-	};
+		};
 	}
 	
 	if (defined $opts->{isa} and not ref $opts->{isa})
