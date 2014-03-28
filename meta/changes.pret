@@ -20,3 +20,9 @@
 	changeset [
 		item "If Sub::Name is available, use it to name the exported `lexical_has` keyword."^^Change;
 	].
+
+`Lexical-Accessor 0.004 cpan:TOBYINK`
+	issued  2014-03-28;
+	changeset [
+		item "Make Lexical::Accessor more subclassable."^^Change;
+	].
