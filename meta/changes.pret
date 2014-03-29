@@ -44,3 +44,9 @@
 	changeset [
 		item "Much cleaned up Sub::Accessor::Small."^^Change;
 	].
+
+`Lexical-Accessor 0.008 cpan:TOBYINK`
+	issued  2014-03-29;
+	changeset [
+		item "Fix attribute defaults."^^Bugfix;
+	].

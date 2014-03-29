@@ -16,7 +16,7 @@ BEGIN {
 };
 
 our $AUTHORITY = 'cpan:TOBYINK';
-our $VERSION   = '0.007';
+our $VERSION   = '0.008';
 our @ISA       = qw/ Exporter::Tiny /;
 
 fieldhash( our %FIELDS );
