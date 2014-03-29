@@ -32,3 +32,9 @@
 	changeset [
 		item "Make Lexical::Accessor more even subclassable."^^Change;
 	].
+
+`Lexical-Accessor 0.006 cpan:TOBYINK`
+	issued  2014-03-29;
+	changeset [
+		item "Split out the most reusable parts of Lexical::Accessor into Sub::Accessor::Small."^^Change;
+	].
