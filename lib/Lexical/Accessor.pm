@@ -104,6 +104,18 @@ sub canonicalize_opts : method
 	}
 }
 
+sub expand_handles
+{
+	my $me = shift;
+	
+	if (ref($me->{handles}) eq q(ARRAY))
+	{
+		return @{$me->{handles}};
+	}
+	
+	croak "Expected delegations to be a reference to an array; got $me->{handles}";
+}
+
 1;
 
 __END__

@@ -139,10 +139,14 @@ sub expand_handles
 	
 	if (ref($me->{handles}) eq q(ARRAY))
 	{
-		return @{$me->{handles}};
+		return map ($_=>$_), @{$me->{handles}};
+	}
+	elsif (ref($me->{handles}) eq q(HASH))
+	{
+		return %{$me->{handles}};
 	}
 	
-	croak "Expected delegations to be a reference to an array; got $me->{handles}";
+	croak "Expected delegations to be a reference to an array or hash; got $me->{handles}";
 }
 
 {
