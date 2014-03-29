@@ -5,6 +5,7 @@ no warnings qw( void once uninitialized );
 
 package Lexical::Accessor;
 
+use Carp qw(croak);
 use Sub::Accessor::Small ();
 
 our $AUTHORITY = 'cpan:TOBYINK';
@@ -42,6 +43,28 @@ sub _inline_to_coderef : method
 sub _accessor_kind : method
 {
 	return 'lexical';
+}
+
+sub _canonicalize_opts : method
+{
+	my $me = shift;
+	my ($name, $uniq, $opts) = @_;
+	$me->SUPER::_canonicalize_opts(@_);
+
+	if (defined $opts->{init_arg})
+	{
+		croak("Invalid init_arg; private attributes cannot be initialized in the constructor");
+	}
+	
+	if ($opts->{required})
+	{
+		croak("Invalid required; private attributes cannot be initialized in the constructor");
+	}
+	
+	if (defined $opts->{lazy} and not $opts->{lazy})
+	{
+		croak("Invalid lazy; private attributes cannot be eager");
+	}
 }
 
 1;

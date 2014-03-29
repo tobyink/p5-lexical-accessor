@@ -144,16 +144,6 @@ sub _canonicalize_opts : method
 	croak("Traits are not supported") if $opts->{traits};
 	croak("The lazy_build option is not supported") if $opts->{lazy_build};
 	
-	if (defined $opts->{init_arg})
-	{
-		croak("Invalid init_arg; private attributes cannot be initialized in the constructor");
-	}
-	
-	if ($opts->{required})
-	{
-		croak("Invalid required; private attributes cannot be initialized in the constructor");
-	}
-	
 	if (defined $opts->{default} and not ref $opts->{default})
 	{
 		my $value = $opts->{default};
@@ -163,11 +153,6 @@ sub _canonicalize_opts : method
 	if (defined $opts->{default} and ref $opts->{default} ne 'CODE')
 	{
 		croak("Invalid default; expected a CODE ref");
-	}
-	
-	if (defined $opts->{lazy} and not $opts->{lazy})
-	{
-		croak("Invalid lazy; private attributes cannot be eager");
 	}
 	
 	if (my $does = $opts->{does})
