@@ -60,7 +60,7 @@ sub _generate_has : method
 
 sub has : method
 {
-	my $me = shift;	
+	my $me = shift;
 	my $attr = $me->new_from_has(@_);
 	$attr->install_accessors;
 }
@@ -94,7 +94,7 @@ sub install_accessors : method
 		}
 	}
 	
-	my @return = 
+	my @return =
 		$me->{is} eq 'ro'   ? ($me->{reader}) :
 		$me->{is} eq 'rw'   ? ($me->{accessor}) :
 		$me->{is} eq 'rwp'  ? ($me->{reader}, $me->{writer}) :
