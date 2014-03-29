@@ -81,6 +81,6 @@ undef($g1);
 undef($g2);
 
 is($trigger, 2, 'triggers work');
-ok(!keys %Lexical::Accessor::FIELDS, 'no leaks');
+ok(!keys %Sub::Accessor::Small::FIELDS, 'no leaks');
 
 done_testing;
