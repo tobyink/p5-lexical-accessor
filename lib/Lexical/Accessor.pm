@@ -30,40 +30,73 @@ sub lexical_has : method
 	goto $has;
 }
 	
-sub _inline_to_coderef : method
+sub inline_to_coderef : method
 {
 	my $me = shift;
 	my ($method_type, $code, $name, $uniq, $opts) = @_;
-	my $coderef = $me->SUPER::_inline_to_coderef(@_);
+	my $coderef = $me->SUPER::inline_to_coderef(@_);
 	Sub::Accessor::Small::HAS_SUB_NAME && $opts->{package} && defined($name)
 		? Sub::Name::subname("$opts->{package}\::__LEXICAL__[$name]", $coderef)
 		: $coderef
 }
 
-sub _accessor_kind : method
+sub accessor_kind : method
 {
 	return 'lexical';
 }
 
-sub _canonicalize_opts : method
+sub canonicalize_is : method
 {
 	my $me = shift;
 	my ($name, $uniq, $opts) = @_;
-	$me->SUPER::_canonicalize_opts(@_);
+	
+	if ($opts->{is} eq 'rw')
+	{
+		$opts->{accessor} = \(my $tmp)
+			if !exists($opts->{accessor});
+	}
+	elsif ($opts->{is} eq 'ro')
+	{
+		$opts->{reader} = \(my $tmp)
+			if !exists($opts->{reader});
+	}
+	elsif ($opts->{is} eq 'rwp')
+	{
+		$opts->{reader} = \(my $tmp1)
+			if !exists($opts->{reader});
+		$opts->{writer} = \(my $tmp2)
+			if !exists($opts->{writer});
+	}
+	elsif ($opts->{is} eq 'lazy')
+	{
+		$opts->{reader} = \(my $tmp)
+			if !exists($opts->{reader});
+		$opts->{lazy} = 1
+			if !exists($opts->{lazy});
+		$opts->{builder} = 1
+			unless $opts->{builder} || $opts->{default};
+	}
+}
+
+sub canonicalize_opts : method
+{
+	my $me = shift;
+	my ($name, $uniq, $opts) = @_;
+	$me->SUPER::canonicalize_opts(@_);
 
 	if (defined $opts->{init_arg})
 	{
-		croak("Invalid init_arg; private attributes cannot be initialized in the constructor");
+		croak("Invalid init_arg=>defined; private attributes cannot be initialized in the constructor");
 	}
 	
 	if ($opts->{required})
 	{
-		croak("Invalid required; private attributes cannot be initialized in the constructor");
+		croak("Invalid required=>1; private attributes cannot be initialized in the constructor");
 	}
 	
 	if (defined $opts->{lazy} and not $opts->{lazy})
 	{
-		croak("Invalid lazy; private attributes cannot be eager");
+		croak("Invalid lazy=>0; private attributes cannot be eager");
 	}
 	
 	for my $type (qw/ reader writer accessor clearer predicate /)
