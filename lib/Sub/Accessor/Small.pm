@@ -21,6 +21,17 @@ our @ISA       = qw/ Exporter::Tiny /;
 
 fieldhash( our %FIELDS );
 
+sub _generate_has : method
+{
+	my $me = shift;
+	my (undef, undef, $export_opts) = @_;
+	
+	my $code = sub { $me->has($export_opts, @_) };
+	$code = Sub::Name::subname("$me\::has", $code)
+		if HAS_SUB_NAME;
+	return $code;
+}
+
 my $uniq = 0;
 sub has : method
 {
@@ -98,8 +109,19 @@ sub has : method
 sub _install_coderef
 {
 	shift;
-	my ($target, $coderef) = @_;
+	my ($target, $coderef, $name, $uniq, $opts) = @_;
 	
+	return unless defined $target;
+	
+	if (!ref $target and $target =~ /\A[^\W0-9]\w+\z/)
+	{
+		my $name = "$opts->{package}\::$target";
+		$coderef = Sub::Name::subname($name, $coderef) if HAS_SUB_NAME;
+		no strict qw(refs);
+		*$name = $coderef;
+		return;
+	}
+		
 	if (ref($target) eq q(SCALAR) and not defined $$target)
 	{
 		$$target = $coderef;
@@ -132,13 +154,35 @@ sub _canonicalize_opts : method
 	my $me = shift;
 	my ($name, $uniq, $opts) = @_;
 	
-	$opts->{is} ||= 'rw';
-	
-	if ($opts->{is} eq 'lazy')
+	if ($opts->{is} eq 'rw')
 	{
-		$opts->{is}      = 'ro';
-		$opts->{builder} = 1 unless $opts->{builder} || $opts->{default};
+		$opts->{accessor} = $name
+			if !exists($opts->{accessor});
 	}
+	elsif ($opts->{is} eq 'ro')
+	{
+		$opts->{reader} = $name
+			if !exists($opts->{reader});
+	}
+	elsif ($opts->{is} eq 'rwp')
+	{
+		$opts->{reader} = $name
+			if !exists($opts->{reader});
+		$opts->{writer} = "_set_$name"
+			if !exists($opts->{writer});
+	}
+	elsif ($opts->{is} eq 'lazy')
+	{
+		$opts->{reader} = $name
+			if !exists($opts->{reader});
+		$opts->{lazy} = 1
+			if !exists($opts->{lazy});
+		$opts->{builder} = 1
+			unless $opts->{builder} || $opts->{default};
+	}
+	
+	croak("No accessors defined")
+		unless defined($opts->{reader}) || defined($opts->{writer}) || defined($opts->{accessor});
 	
 	croak("Initializers are not supported") if $opts->{initializer};
 	croak("Traits are not supported") if $opts->{traits};

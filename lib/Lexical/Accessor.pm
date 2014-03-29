@@ -65,6 +65,14 @@ sub _canonicalize_opts : method
 	{
 		croak("Invalid lazy; private attributes cannot be eager");
 	}
+	
+	for my $type (qw/ reader writer accessor clearer predicate /)
+	{
+		if (defined($opts->{$type}) and not ref($opts->{$type}) eq q(SCALAR))
+		{
+			croak("Expected $type to be a scalar ref; not '$opts->{$type}'");
+		}
+	}
 }
 
 1;

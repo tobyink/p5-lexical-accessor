@@ -28,24 +28,9 @@ use Test::More;
 BEGIN {
 	package Local::MyAccessor;
 	
-	use base qw(Lexical::Accessor);
+	use base qw(Sub::Accessor::Small);
 	our @EXPORT = qw( has );
 	$INC{'Local/MyAccessor.pm'} = __FILE__;
-	
-	*_generate_has = __PACKAGE__->can('_generate_lexical_has');
-	
-	# Install as a normal method
-	sub _install_coderef {
-		my $me = shift;
-		my ($target, $coderef, undef, undef, $opts) = @_;
-		if (!ref $target and $target =~ /\A[^\W0-9]\w+\z/) {
-			no strict qw(refs);
-			my $name = "$opts->{package}\::$target";
-			*{$name} = $coderef;
-			return;
-		}
-		$me->SUPER::_install_coderef(@_);
-	}
 	
 	# Store in a hashref instead of inside-out.
 	sub _inline_access {
