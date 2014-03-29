@@ -16,9 +16,7 @@ our @ISA       = qw/ Sub::Accessor::Small /;
 sub _generate_lexical_has : method
 {
 	my $me = shift;
-	my (undef, undef, $export_opts) = @_;
-	
-	my $code = sub { $me->lexical_has($export_opts, @_) };
+	my $code = $me->_generate_has(@_);
 	$code = Sub::Name::subname("$me\::lexical_has", $code)
 		if Sub::Accessor::Small::HAS_SUB_NAME;
 	return $code;
@@ -33,10 +31,10 @@ sub lexical_has : method
 sub inline_to_coderef : method
 {
 	my $me = shift;
-	my ($method_type, $code, $name, $uniq, $opts) = @_;
+	my ($method_type, $code) = @_;
 	my $coderef = $me->SUPER::inline_to_coderef(@_);
-	Sub::Accessor::Small::HAS_SUB_NAME && $opts->{package} && defined($name)
-		? Sub::Name::subname("$opts->{package}\::__LEXICAL__[$name]", $coderef)
+	Sub::Accessor::Small::HAS_SUB_NAME && $me->{package} && defined($me->{slot})
+		? Sub::Name::subname("$me->{package}\::__LEXICAL__[$me->{slot}]", $coderef)
 		: $coderef
 }
 
@@ -48,62 +46,60 @@ sub accessor_kind : method
 sub canonicalize_is : method
 {
 	my $me = shift;
-	my ($name, $uniq, $opts) = @_;
 	
-	if ($opts->{is} eq 'rw')
+	if ($me->{is} eq 'rw')
 	{
-		$opts->{accessor} = \(my $tmp)
-			if !exists($opts->{accessor});
+		$me->{accessor} = \(my $tmp)
+			if !exists($me->{accessor});
 	}
-	elsif ($opts->{is} eq 'ro')
+	elsif ($me->{is} eq 'ro')
 	{
-		$opts->{reader} = \(my $tmp)
-			if !exists($opts->{reader});
+		$me->{reader} = \(my $tmp)
+			if !exists($me->{reader});
 	}
-	elsif ($opts->{is} eq 'rwp')
+	elsif ($me->{is} eq 'rwp')
 	{
-		$opts->{reader} = \(my $tmp1)
-			if !exists($opts->{reader});
-		$opts->{writer} = \(my $tmp2)
-			if !exists($opts->{writer});
+		$me->{reader} = \(my $tmp1)
+			if !exists($me->{reader});
+		$me->{writer} = \(my $tmp2)
+			if !exists($me->{writer});
 	}
-	elsif ($opts->{is} eq 'lazy')
+	elsif ($me->{is} eq 'lazy')
 	{
-		$opts->{reader} = \(my $tmp)
-			if !exists($opts->{reader});
-		$opts->{lazy} = 1
-			if !exists($opts->{lazy});
-		$opts->{builder} = 1
-			unless $opts->{builder} || $opts->{default};
+		$me->{reader} = \(my $tmp)
+			if !exists($me->{reader});
+		$me->{lazy} = 1
+			if !exists($me->{lazy});
+		$me->{builder} = 1
+			unless $me->{builder} || $me->{default};
 	}
 }
 
 sub canonicalize_opts : method
 {
 	my $me = shift;
-	my ($name, $uniq, $opts) = @_;
 	$me->SUPER::canonicalize_opts(@_);
 
-	if (defined $opts->{init_arg})
+	if (defined $me->{init_arg})
 	{
 		croak("Invalid init_arg=>defined; private attributes cannot be initialized in the constructor");
 	}
 	
-	if ($opts->{required})
+	if ($me->{required})
 	{
 		croak("Invalid required=>1; private attributes cannot be initialized in the constructor");
 	}
 	
-	if (defined $opts->{lazy} and not $opts->{lazy})
+	if (defined $me->{lazy} and not $me->{lazy})
 	{
 		croak("Invalid lazy=>0; private attributes cannot be eager");
 	}
 	
 	for my $type (qw/ reader writer accessor clearer predicate /)
 	{
-		if (defined($opts->{$type}) and not ref($opts->{$type}) eq q(SCALAR))
+		if (defined($me->{$type}) and not ref($me->{$type}) eq q(SCALAR))
 		{
-			croak("Expected $type to be a scalar ref; not '$opts->{$type}'");
+			croak("Expected $type to be a scalar ref; not '$me->{$type}'");
 		}
 	}
 }
