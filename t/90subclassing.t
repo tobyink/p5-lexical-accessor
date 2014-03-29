@@ -48,7 +48,7 @@ BEGIN {
 	}
 	
 	# Store in a hashref instead of inside-out.
-	sub _inline_lexical_access {
+	sub _inline_access {
 		my $me = shift;
 		my ($name, $uniq, $opts) = @_;
 		sprintf(
