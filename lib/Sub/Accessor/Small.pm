@@ -251,7 +251,7 @@ sub canonicalize_default : method
 	}
 	
 	croak("Invalid default; expected a CODE ref")
-		unless ref $me->{default} ne 'CODE';
+		unless ref $me->{default} eq 'CODE';
 }
 
 sub canonicalize_isa : method
