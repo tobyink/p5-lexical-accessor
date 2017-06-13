@@ -561,12 +561,12 @@ sub inline_accessor : method
 	
 	if ($coerce eq '$_[1]')  # i.e. no coercion
 	{
-		if (!$me->{trigger} and !$me->{weak_ref})
+		if (!$me->{lazy} and !$me->{trigger} and !$me->{weak_ref})
 		{
 			return sprintf(
 				'(@_ > 1) ? (%s) : %s',
 				$me->inline_access_w( $me->inline_type_assertion('$_[1]') ),
-				$get,
+				$me->inline_get,
 			);
 		}
 		
@@ -576,7 +576,7 @@ sub inline_accessor : method
 			$me->inline_trigger('$_[1]', $get),
 			$me->inline_access_w('$_[1]'),
 			$me->inline_weaken,
-			$me->inline_get,
+			$me->inline_reader,
 		);
 	}
 	
@@ -587,7 +587,7 @@ sub inline_accessor : method
 		$me->inline_trigger('$val', $get),
 		$me->inline_access_w('$val'),
 		$me->inline_weaken,
-		$me->inline_get,
+		$me->inline_reader,
 	);
 }
 
@@ -748,7 +748,7 @@ Toby Inkster E<lt>tobyink@cpan.orgE<gt>.
 
 =head1 COPYRIGHT AND LICENCE
 
-This software is copyright (c) 2013-2014 by Toby Inkster.
+This software is copyright (c) 2013-2014, 2017 by Toby Inkster.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
