@@ -12,7 +12,12 @@ use Hash::FieldHash  qw( fieldhash );
 use Scalar::Util     qw( blessed reftype );
 
 BEGIN {
-	*HAS_SUB_NAME = eval { require Sub::Name } ? sub(){1} : sub(){0};
+	*HAS_SUB_UTIL = eval { require Sub::Util }
+		? sub(){1}
+		: sub(){0};
+	*HAS_SUB_NAME = !HAS_SUB_UTIL() && eval { require Sub::Name }
+		? sub(){1}
+		: sub(){0};
 };
 
 our $AUTHORITY = 'cpan:TOBYINK';
@@ -32,7 +37,9 @@ sub _generate_has : method
 		$attr->install_accessors;
 	};
 	
-	$code = Sub::Name::subname("$me\::has", $code) if HAS_SUB_NAME;
+	HAS_SUB_UTIL ? ($code = Sub::Util::set_subname("$me\::has", $code)) : 
+	HAS_SUB_NAME ? ($code = Sub::Name::subname("$me\::has", $code)) : 
+		();
 	return $code;
 }
 
@@ -113,7 +120,9 @@ sub install_coderef
 	if (!ref $target and $target =~ /\A[^\W0-9]\w+\z/)
 	{
 		my $name = "$me->{package}\::$target";
-		$coderef = Sub::Name::subname($name, $coderef) if HAS_SUB_NAME;
+		HAS_SUB_UTIL ? ($coderef = Sub::Util::set_subname($name, $coderef)) :
+		HAS_SUB_NAME ? ($coderef = Sub::Name::subname($name, $coderef)) :
+			();
 		no strict qw(refs);
 		*$name = $coderef;
 		return;
@@ -186,7 +195,9 @@ sub expand_handles
 			
 		if (ref $me->{builder} eq 'CODE')
 		{
-			HAS_SUB_NAME or do { require Sub::Name };
+			HAS_SUB_UTIL or
+			HAS_SUB_NAME or
+			do { require Sub::Util };
 			
 			my $code = $me->{builder};
 			defined($name) && defined($me->{package})
