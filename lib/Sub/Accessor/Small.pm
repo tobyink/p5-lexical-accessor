@@ -37,8 +37,8 @@ sub _generate_has : method
 		$attr->install_accessors;
 	};
 	
-	HAS_SUB_UTIL ? ($code = Sub::Util::set_subname("$me\::has", $code)) : 
-	HAS_SUB_NAME ? ($code = Sub::Name::subname("$me\::has", $code)) : 
+	HAS_SUB_UTIL ? ($code = Sub::Util::set_subname("$me\::has", $code)) :
+	HAS_SUB_NAME ? ($code = Sub::Name::subname("$me\::has", $code)) :
 		();
 	return $code;
 }
