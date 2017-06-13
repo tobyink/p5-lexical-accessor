@@ -77,14 +77,11 @@ sub new : method
 sub install_accessors : method
 {
 	my $me = shift;
-	my %collected_coderefs;
 	
 	for my $type (qw( accessor reader writer predicate clearer ))
 	{
 		next unless defined $me->{$type};
-		my $code = $me->$type;
-		$collected_coderefs{$type} = $code;
-		$me->install_coderef($me->{$type}, $code);
+		$me->install_coderef($me->{$type}, $me->$type);
 	}
 	
 	if (defined $me->{handles})
@@ -97,11 +94,11 @@ sub install_accessors : method
 		}
 	}
 	
-	my @return =
-		$me->{is} eq 'ro'   ? @collected_coderefs{qw/reader/} :
-		$me->{is} eq 'rw'   ? @collected_coderefs{qw/accessor/} :
-		$me->{is} eq 'rwp'  ? @collected_coderefs{qw/reader writer/} :
-		$me->{is} eq 'lazy' ? @collected_coderefs{qw/reader/} :
+	my @return = map $$_,
+		$me->{is} eq 'ro'   ? ($me->{reader}) :
+		$me->{is} eq 'rw'   ? ($me->{accessor}) :
+		$me->{is} eq 'rwp'  ? ($me->{reader}, $me->{writer}) :
+		$me->{is} eq 'lazy' ? ($me->{reader}) :
 		();
 	wantarray ? @return : $return[0];
 }
