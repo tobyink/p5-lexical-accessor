@@ -37,7 +37,7 @@ BEGIN {
 	);
 	
 	sub get { shift->$attr }
-}; 
+};
 
 is( AAA->new->get, 90 );
 
