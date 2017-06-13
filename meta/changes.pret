@@ -50,3 +50,12 @@
 	changeset [
 		item "Fix attribute defaults."^^Bugfix;
 	].
+
+`Lexical-Accessor 0.009 cpan:TOBYINK`
+	issued  2017-06-13;
+	changeset [
+		item [
+			label "Fixes for defaults in accessors.";
+			dcs:fixes RT#101024;
+		];
+	].
