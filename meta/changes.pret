@@ -62,7 +62,7 @@
 		item [
 			a dcs:Bugfix;
 			label "Make `has` return coderefs as documented.";
-			seeAlso <https://github.com/tobyink/p5-lexical-accessor/pull/1>;
+			rdfs:seeAlso <https://github.com/tobyink/p5-lexical-accessor/pull/1>;
 			dcs:blame cpan:AMON;
 		];
 		item [
