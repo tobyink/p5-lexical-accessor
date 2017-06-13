@@ -55,7 +55,18 @@
 	issued  2017-06-13;
 	changeset [
 		item [
+			a dcs:Bugfix;
 			label "Fixes for defaults in accessors.";
 			dcs:fixes RT#101024;
+		];
+		item [
+			a dcs:Bugfix;
+			label "Make `has` return coderefs as documented.";
+			seeAlso <https://github.com/tobyink/p5-lexical-accessor/pull/1>;
+			dcs:blame cpan:AMON;
+		];
+		item [
+			a dcs:Update;
+			label "Support Sub::Util instead of Sub::Name (with Sub::Name as a fallback).";
 		];
 	].
