@@ -84,3 +84,9 @@
 		item "Allow private attributes to have public accessor methods. (They could already have public methods delegated to them.)"^^Change;
 	].
 
+`Lexical-Accessor 0.012 cpan:TOBYINK`
+	issued  2020-02-14;
+	changeset [
+		item "Make Hash::FieldHash a recommendation rather than a requirement; fall back to Hash::Util::FieldHash on Perl 5.10+ and Hash::Util::FieldHash::Compat on Perl 5.8."^^Change;
+	].
+
