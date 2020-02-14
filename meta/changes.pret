@@ -78,3 +78,9 @@
 		item "Document that you can use non-lexical methods for delegations. (This has already worked for at least five years.)"^^Documentation;
 	].
 
+`Lexical-Accessor 0.011 cpan:TOBYINK`
+	issued  2020-02-14;
+	changeset [
+		item "Allow private attributes to have public accessor methods. (They could already have public methods delegated to them.)"^^Change;
+	].
+
