@@ -280,10 +280,11 @@ Boolean. Makes the setter weaken any references it is called with.
 =item C<< handles >>
 
 Delegates methods. Has slightly different syntax to Moose's option of
-the same name - is required to be an arrayref of pairs such that each
-pair is a scalar ref followed by a method name, a coderef, or an
-arrayref (where the first element is a method name or coderef and
-subsequent elements are curried arguments).
+the same name - is required to be an arrayref of pairs such that in
+each pair, the first is a scalar ref or a string method name that will
+be handled, and the second is a coderef or string method name that
+will do the handling. (The second can be an arrayref in the case of
+currying.)
  
    my ($get, $post);
   
@@ -298,6 +299,29 @@ subsequent elements are curried arguments).
    
    # later...
    my $response = $self->$get('http://example.net/');
+
+Supports L<Sub::HandlesVia>:
+
+   my $remove_task;
+   lexical_has tasks => (
+      isa          => ArrayRef,
+      handles_via  => 'Array',
+      handles      => [
+         task_count     => 'count',
+         add_task       => 'push',
+         next_task      => [ 'get', 0 ],
+         \$remove_task  => 'unshift',
+      ],
+   );
+   
+   # later...
+   while ($self->task_count) {
+      my $task    = $self->next_task;
+      my $success = $self->handle_task($task);
+      if ($success) {
+         $self->$remove_task;
+      }
+   }
 
 =item C<< initializer >>, C<< traits >>, C<< lazy_build >>
 
