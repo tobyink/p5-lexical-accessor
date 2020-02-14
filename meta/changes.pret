@@ -70,3 +70,11 @@
 			label "Support Sub::Util instead of Sub::Name (with Sub::Name as a fallback).";
 		];
 	].
+
+`Lexical-Accessor 0.010 cpan:TOBYINK`
+	issued  2020-02-14;
+	changeset [
+		item "Sub::HandlesVia support."^^Addition;
+		item "Document that you can use non-lexical methods for delegations. (This has already worked for at least five years.)"^^Documentation;
+	].
+
