@@ -8,7 +8,6 @@ package Sub::Accessor::Small;
 use Carp             qw( carp croak );
 use Eval::TypeTiny   qw();
 use Exporter::Tiny   qw();
-use Hash::FieldHash  qw( fieldhash );
 use Scalar::Util     qw( blessed reftype );
 
 BEGIN {
@@ -18,6 +17,13 @@ BEGIN {
 	*HAS_SUB_NAME = !HAS_SUB_UTIL() && eval { require Sub::Name }
 		? sub(){1}
 		: sub(){0};
+};
+
+BEGIN {
+	*fieldhash =
+		eval { require Hash::FieldHash;               \&Hash::FieldHash::fieldhash               } ||
+		eval { require Hash::Util::FieldHash;         \&Hash::Util::FieldHash::fieldhash         } ||
+		do   { require Hash::Util::FieldHash::Compat; \&Hash::Util::FieldHash::Compat::fieldhash } ;;
 };
 
 our $AUTHORITY = 'cpan:TOBYINK';

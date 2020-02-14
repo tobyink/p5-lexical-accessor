@@ -7,7 +7,7 @@
 	:runtime-requirement    [ :on "perl 5.008003"^^:CpanId ];
 	:runtime-requirement    [ :on "Eval::TypeTiny"^^:CpanId ];
 	:runtime-requirement    [ :on "Exporter::Tiny"^^:CpanId ];
-	:runtime-requirement    [ :on "Hash::FieldHash"^^:CpanId ];
+	:runtime-recommendation [ :on "Hash::FieldHash"^^:CpanId ];
 	:runtime-recommendation [ :on "Sub::HandlesVia"^^:CpanId ];
 	:runtime-recommendation [ :on "Type::Utils 0.026"^^:CpanId ];
 	:runtime-recommendation [ :on "Sub::Name"^^:CpanId ];
