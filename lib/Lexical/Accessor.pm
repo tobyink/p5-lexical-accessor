@@ -99,13 +99,13 @@ sub canonicalize_opts : method
 		$me->{lazy} ||= 1 if $me->{default} || $me->{builder};
 	}
 	
-	for my $type (qw/ reader writer accessor clearer predicate /)
-	{
-		if (defined($me->{$type}) and not ref($me->{$type}) eq q(SCALAR))
-		{
-			croak("Expected $type to be a scalar ref; not '$me->{$type}'");
-		}
-	}
+#	for my $type (qw/ reader writer accessor clearer predicate /)
+#	{
+#		if (defined($me->{$type}) and not ref($me->{$type}) eq q(SCALAR))
+#		{
+#			croak("Expected $type to be a scalar ref; not '$me->{$type}'");
+#		}
+#	}
 }
 
 sub expand_handles
@@ -167,7 +167,7 @@ complete privacy: subclasses can define a private (or even public)
 attribute with the same name as your private one and they will not
 interfere with each other.
 
-Private attributes can not be initialized by L<Moose>/L<Moo>/L<Mouse>
+Private attributes cannot be initialized by L<Moose>/L<Moo>/L<Mouse>
 constructors, but you can safely initialize them inside a C<BUILD> sub.
 
 =head2 Functions
@@ -214,6 +214,17 @@ into them:
       reader      => \$get_foo,
       writer      => \$set_foo,
    );
+
+They can also be method names as strings:
+
+   my ($set_foo);
+   
+   lexical_has foo => (
+      reader      => 'get_foo',
+      writer      => \$set_foo,
+   );
+
+This allows you to provide a partly public API for an attribute.
 
 =item C<< default >>, C<< builder >>, C<< lazy >>
 
