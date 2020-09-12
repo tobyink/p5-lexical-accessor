@@ -90,3 +90,10 @@
 		item "Make Hash::FieldHash a recommendation rather than a requirement; fall back to Hash::Util::FieldHash on Perl 5.10+ and Hash::Util::FieldHash::Compat on Perl 5.8."^^Change;
 	].
 
+`Lexical-Accessor 0.013 cpan:TOBYINK`
+	issued  2020-09-12;
+	changeset [
+		item "Sub::Accessor::Small now passes defaults/builders to Sub::HandlesVia. This should allow delegated reset to work."^^Change;
+		item "Sub::Accessor::Small is now documented, albeit only slightly."^^Documentation;
+	].
+
