@@ -108,9 +108,13 @@ sub install_accessors : method
 				+{%$me},
 			);
 			if ($shv_data) {
+				my @default =
+					ref($me->{default})    ? ( $me->{default} ) :
+					length($me->{builder}) ? ( $me->{builder} ) :
+					();
 				my $callbacks = 'Sub::HandlesVia::Toolkit::Plain'->make_callbacks(
 					$me->{package},
-					[ $me->reader, $me->writer ],
+					[ $me->reader, $me->writer, @default ],
 				);
 				require Sub::HandlesVia::Handler;
 				$me->{handles} = $orig_handles;
