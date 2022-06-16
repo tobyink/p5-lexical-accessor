@@ -97,3 +97,9 @@
 		item "Sub::Accessor::Small is now documented, albeit only slightly."^^Documentation;
 	].
 
+`Lexical-Accessor 0.014 cpan:TOBYINK`
+	issued  2022-06-16;
+	changeset [
+		item "Cope with changes to Sub::HandlesVia API; try to stick more to the public API."^^Update;
+	].
+
