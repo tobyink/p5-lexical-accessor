@@ -8,7 +8,7 @@
 	:runtime-requirement    [ :on "Eval::TypeTiny"^^:CpanId ];
 	:runtime-requirement    [ :on "Exporter::Tiny"^^:CpanId ];
 	:runtime-recommendation [ :on "Hash::FieldHash"^^:CpanId ];
-	:runtime-recommendation [ :on "Sub::HandlesVia"^^:CpanId ];
+	:runtime-recommendation [ :on "Sub::HandlesVia 0.025"^^:CpanId ];
 	:runtime-recommendation [ :on "Type::Utils 0.026"^^:CpanId ];
 	:runtime-recommendation [ :on "Sub::Name"^^:CpanId ];
 	:test-requirement       [ :on "Test::More 0.96"^^:CpanId ];
