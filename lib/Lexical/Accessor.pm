@@ -17,9 +17,7 @@ sub _generate_lexical_has : method
 {
 	my $me = shift;
 	my $code = $me->_generate_has(@_);
-	$code = Sub::Name::subname("$me\::lexical_has", $code)
-		if Sub::Accessor::Small::HAS_SUB_NAME;
-	return $code;
+	return Sub::Accessor::Small::set_subname( "$me\::lexical_has", $code );
 }
 
 sub lexical_has : method
@@ -33,8 +31,8 @@ sub inline_to_coderef : method
 	my $me = shift;
 	my ($method_type, $code) = @_;
 	my $coderef = $me->SUPER::inline_to_coderef(@_);
-	Sub::Accessor::Small::HAS_SUB_NAME && $me->{package} && defined($me->{slot})
-		? Sub::Name::subname("$me->{package}\::__LEXICAL__[$me->{slot}]", $coderef)
+	( $me->{package} and defined $me->{slot} )
+		? Sub::Accessor::Small::set_subname( "$me->{package}\::__LEXICAL__[$me->{slot}]", $coderef )
 		: $coderef
 }
 

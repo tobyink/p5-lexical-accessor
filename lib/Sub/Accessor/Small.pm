@@ -5,19 +5,14 @@ no warnings qw( void once uninitialized );
 
 package Sub::Accessor::Small;
 
+our $AUTHORITY = 'cpan:TOBYINK';
+our $VERSION   = '0.014';
+our @ISA       = qw/ Exporter::Tiny /;
+
 use Carp             qw( carp croak );
 use Eval::TypeTiny   qw();
 use Exporter::Tiny   qw();
 use Scalar::Util     qw( blessed reftype );
-
-BEGIN {
-	*HAS_SUB_UTIL = eval { require Sub::Util }
-		? sub(){1}
-		: sub(){0};
-	*HAS_SUB_NAME = !HAS_SUB_UTIL() && eval { require Sub::Name }
-		? sub(){1}
-		: sub(){0};
-};
 
 BEGIN {
 	*fieldhash =
@@ -26,11 +21,13 @@ BEGIN {
 		do   { require Hash::Util::FieldHash::Compat; \&Hash::Util::FieldHash::Compat::fieldhash } ;;
 };
 
-our $AUTHORITY = 'cpan:TOBYINK';
-our $VERSION   = '0.014';
-our @ISA       = qw/ Exporter::Tiny /;
-
 fieldhash( our %FIELDS );
+
+my $set_subname_is_fake = 0;
+*set_subname =
+	eval { require Sub::Util } ? \&Sub::Util::set_subname :
+	eval { require Sub::Name } ? \&Sub::Name::subname :
+	do { $set_subname_is_fake++; sub { pop; } };
 
 sub _generate_has : method
 {
@@ -43,10 +40,7 @@ sub _generate_has : method
 		$attr->install_accessors;
 	};
 	
-	HAS_SUB_UTIL ? ($code = Sub::Util::set_subname("$me\::has", $code)) :
-	HAS_SUB_NAME ? ($code = Sub::Name::subname("$me\::has", $code)) :
-		();
-	return $code;
+	return set_subname( "$me\::has", $code );
 }
 
 {
@@ -150,11 +144,8 @@ sub install_coderef
 	if (!ref $target and $target =~ /\A[^\W0-9]\w+\z/)
 	{
 		my $name = "$me->{package}\::$target";
-		HAS_SUB_UTIL ? ($coderef = Sub::Util::set_subname($name, $coderef)) :
-		HAS_SUB_NAME ? ($coderef = Sub::Name::subname($name, $coderef)) :
-			();
 		no strict qw(refs);
-		*$name = $coderef;
+		*$name = set_subname( $name, $coderef );
 		return;
 	}
 		
@@ -225,9 +216,8 @@ sub expand_handles
 			
 		if (ref $me->{builder} eq 'CODE')
 		{
-			HAS_SUB_UTIL or
-			HAS_SUB_NAME or
-			do { require Sub::Util };
+			croak "builder => CODE requires Sub::Util or Sub::Name to be installed"
+				if $set_subname_is_fake;
 			
 			my $code = $me->{builder};
 			defined($name) && defined($me->{package})
@@ -241,7 +231,7 @@ sub expand_handles
 				$subname,
 				{},
 				$me->{_export},
-				Sub::Name::subname($fq_subname, $code),
+				set_subname( $fq_subname, $code ),
 			);
 		}
 	}

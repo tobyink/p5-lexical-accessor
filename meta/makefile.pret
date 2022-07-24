@@ -10,7 +10,8 @@
 	:runtime-recommendation [ :on "Hash::FieldHash"^^:CpanId ];
 	:runtime-recommendation [ :on "Sub::HandlesVia 0.025"^^:CpanId ];
 	:runtime-recommendation [ :on "Type::Utils 0.026"^^:CpanId ];
-	:runtime-recommendation [ :on "Sub::Name"^^:CpanId ];
+	:runtime-recommendation [ :on "Sub::Util 1.40"^^:CpanId ];
+	:runtime-suggestion     [ :on "Sub::Name"^^:CpanId ];
 	:test-requirement       [ :on "Test::More 0.96"^^:CpanId ];
 	:test-requirement       [ :on "Types::Standard 0.004"^^:CpanId ];
 	:test-requirement       [ :on "Test::Fatal"^^:CpanId ];
