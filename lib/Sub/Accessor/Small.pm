@@ -6,7 +6,7 @@ no warnings qw( void once uninitialized );
 package Sub::Accessor::Small;
 
 our $AUTHORITY = 'cpan:TOBYINK';
-our $VERSION   = '1.000000';
+our $VERSION   = '1.000001';
 our @ISA       = qw/ Exporter::Tiny /;
 
 use Carp             qw( carp croak );

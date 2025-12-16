@@ -108,3 +108,9 @@
 	changeset [
 		item "Various changes to Sub::Accessor::Small, mostly to generate more efficient code, especially delegations."^^Change;
 	].
+
+`Lexical-Accessor 1.000001 cpan:TOBYINK`
+	issued  2025-12-16;
+	changeset [
+		item "Fix default builder name to match documentation."^^Change;
+	].
