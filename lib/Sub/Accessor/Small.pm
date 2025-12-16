@@ -187,7 +187,7 @@ sub expand_handles
 		predicate  => [qw/ has_%s _has%s /],
 		clearer    => [qw/ clear_%s _clear%s /],
 		trigger    => [qw/ _trigger_%s _trigger_%s /],
-		builder    => [qw/ _builder_%s _builder_%s /],
+		builder    => [qw/ _build_%s _build_%s /],
 	);
 	
 	sub canonicalize_1 : method
@@ -266,7 +266,7 @@ sub canonicalize_is : method
 		$me->{lazy} = 1
 			if !exists($me->{lazy});
 		$me->{builder} = 1
-			unless $me->{builder} || $me->{default};
+			unless $me->{builder} || exists $me->{default};
 	}
 }
 
