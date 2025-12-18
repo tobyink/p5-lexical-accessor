@@ -114,3 +114,10 @@
 	changeset [
 		item "Fix default builder name to match documentation."^^Change;
 	].
+
+`Lexical-Accessor 1.000002 cpan:TOBYINK`
+	issued  2025-12-18;
+	changeset [
+		item "Major improvements to trigger implementation."^^Change;
+		item "Reduce chance of collisions in the names of closed over variables."^^Change;
+	].
