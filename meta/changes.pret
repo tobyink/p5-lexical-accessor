@@ -121,3 +121,11 @@
 		item "Major improvements to trigger implementation."^^Change;
 		item "Reduce chance of collisions in the names of closed over variables."^^Change;
 	].
+
+`Lexical-Accessor 1.000003 cpan:TOBYINK`
+	issued  2026-01-09;
+	changeset [
+		item "Fix for lazy defaults/builders running triggers (triggers shouldn't run for defaults and builders)."^^Bugfix;
+		item "Fix for canonicalizing builder=>CODEREF."^^Bugfix;
+		item "Fix for accessors which a method name which is only one character long."^^Bugfix;
+	].
