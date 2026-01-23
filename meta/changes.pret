@@ -129,3 +129,10 @@
 		item "Fix for canonicalizing builder=>CODEREF."^^Bugfix;
 		item "Fix for accessors which a method name which is only one character long."^^Bugfix;
 	].
+
+`Lexical-Accessor 1.001000 cpan:TOBYINK`
+	issued  2026-01-23;
+	changeset [
+		item "Support chainable accessors/writers/clearers."^^Addition;
+		item "Avoid is=>rw or is=>ro overriding explicitly named accessors."^^Bugfix;
+	].
