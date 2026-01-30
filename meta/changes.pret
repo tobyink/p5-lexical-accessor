@@ -142,3 +142,9 @@
 	changeset [
 		item "Bypass chainable accessors when dealing with Sub::HandlesVia."^^Bugfix;
 	].
+
+`Lexical-Accessor 1.001002 cpan:TOBYINK`
+	issued  2026-01-30;
+	changeset [
+		item "Fix previous fix."^^Bugfix;
+	].
