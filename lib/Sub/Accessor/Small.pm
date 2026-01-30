@@ -129,6 +129,7 @@ sub install_accessors : method
 				$handles_map{"$name"} = $name;
 			}
 			
+			delete local $me->{chain};
 			require Sub::HandlesVia::Toolkit::SubAccessorSmall;
 			my $SHV = 'Sub::HandlesVia::Toolkit::SubAccessorSmall'->new(
 				attr => $me,
