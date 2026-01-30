@@ -6,7 +6,7 @@ no warnings qw( void once uninitialized );
 package Sub::Accessor::Small;
 
 our $AUTHORITY = 'cpan:TOBYINK';
-our $VERSION   = '1.001001';
+our $VERSION   = '1.001002';
 our @ISA       = qw/ Exporter::Tiny /;
 our @EXPORT_OK = qw/ has /;
 
