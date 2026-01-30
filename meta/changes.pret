@@ -136,3 +136,9 @@
 		item "Support chainable accessors/writers/clearers."^^Addition;
 		item "Avoid is=>rw or is=>ro overriding explicitly named accessors."^^Bugfix;
 	].
+
+`Lexical-Accessor 1.001001 cpan:TOBYINK`
+	issued  2026-01-30;
+	changeset [
+		item "Bypass chainable accessors when dealing with Sub::HandlesVia."^^Bugfix;
+	].

@@ -6,7 +6,7 @@ no warnings qw( void once uninitialized );
 package Sub::HandlesVia::Toolkit::SubAccessorSmall;
 
 our $AUTHORITY = 'cpan:TOBYINK';
-our $VERSION   = '1.001000';
+our $VERSION   = '1.001001';
 
 use Sub::HandlesVia::Toolkit;
 our @ISA = 'Sub::HandlesVia::Toolkit';
@@ -44,6 +44,7 @@ sub code_generator_for_attribute {
 	my $slot = sub {
 		my $gen = shift;
 		delete local $realattr->{chain};
+		delete local $realattr->{clone};
 		delete local $realattr->{clone_on_write};
 		delete local $realattr->{clone_on_read};
 		$realattr->inline_access($gen->generate_self);
@@ -54,6 +55,7 @@ sub code_generator_for_attribute {
 	if ( $realattr->has_simple_reader ) {
 		$get = sub {
 			my $gen = shift;
+			delete local $realattr->{clone};
 			delete local $realattr->{clone_on_read};
 			return $realattr->inline_access($gen->generate_self);
 		};
@@ -62,6 +64,7 @@ sub code_generator_for_attribute {
 	else {
 		$get = sub {
 			my $gen = shift;
+			delete local $realattr->{clone};
 			delete local $realattr->{clone_on_read};
 			return $realattr->inline_reader( $gen->generate_self );
 		}
@@ -71,6 +74,7 @@ sub code_generator_for_attribute {
 		$set = sub {
 			my ( $gen, $val ) = @_;
 			delete local $realattr->{chain};
+			delete local $realattr->{clone};
 			delete local $realattr->{clone_on_write};
 			return sprintf('(%s)', $realattr->inline_access_w($gen->generate_self, $val) );
 		};
@@ -79,6 +83,7 @@ sub code_generator_for_attribute {
 		$set = sub {
 			my ( $gen, $val ) = @_;
 			delete local $realattr->{chain};
+			delete local $realattr->{clone};
 			delete local $realattr->{clone_on_write};
 			return $realattr->inline_writer( $gen->generate_self, $val );
 		};
